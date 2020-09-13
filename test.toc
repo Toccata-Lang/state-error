@@ -1,0 +1,49 @@
+
+(add-ns se (module "state-error.toc"))
+
+(main [_]
+  (let [double (fn [x]
+                 (* 2 x))]
+    ;; check the functor and applicative laws for free-monad
+    (println)
+    (println 'functor-1 (= ((map (se/state-error 5) identity) 'state)
+                           ((se/state-error 5) 'state)))
+    (println 'functor-2 (= ((map (map (se/state-error 2) inc) double) 'state)
+                           ((map (se/state-error 2) (comp double inc)) 'state)))
+    (println 'functor-3 (= ((map se/zero-se (comp double inc)) 'state)
+                           (se/Failure 'state)))
+    (println 'apply-1 (= ((map (se/state-error 5) inc) 'state)
+                         ((apply-to inc (se/state-error 5)) 'state)))
+    (println 'apply-2 (= ((se/state-error 5) 'state)
+                         ((apply-to identity (se/state-error 5)) 'state)))
+    (let [v1 (se/state-error "first ")
+          v2 (se/state-error "second ")
+          v3 (se/state-error "third")]
+      (println 'apply-3 (= ((apply-to comp (apply (se/state-error comp) (list v1 v2)) v3) 'state)
+                           ((apply-to comp v1 (apply (se/state-error comp) (list v2 v3))) 'state)
+                           ((apply (se/state-error comp) (list v1 v2 v3)) 'state))))
+
+    (let [f-inc (fn [x] (se/state-error (inc x)))
+          f-dbl (fn [x] (se/state-error (double x)))]
+      (println 'flat-map-1 (= ((flat-map (se/state-error 4) f-inc) 'state)
+                              ((f-inc 4) 'state)))
+      (println 'flat-map-2 (= ((flat-map (se/state-error 4) se/state-error) 'state)
+                              ((se/state-error 4) 'state)))
+      (println 'flat-map-3 (= ((flat-map (flat-map (se/state-error 4) f-inc) f-dbl) 'state)
+                              ((flat-map (se/state-error 4) (fn [x] (flat-map (f-inc x) f-dbl))) 'state))))
+
+    (println 'comp-1 ((comp se/zero-se
+                            (se/state-error 'a))
+                      'state))
+
+    (println 'comp-2 ((comp (se/state-error 'a)
+                            se/zero-se)
+                      'state))
+
+    (println 'comp-3 ((comp se/zero-se
+                            se/zero-se
+                            (se/state-error 'a))
+                      'state))
+    (println)
+    ))
+
