@@ -38,7 +38,7 @@ if (maybeFailure != (Value *)0) {
   fprintf(stderr, \"Trying to re-initialize 'maybe-failure'. Are you trying to use two different versions the state-error module.\");
   abort();
 }
-maybeFailure = maybe((Vector *)0, (Value *)0, x_0);
+maybeFailure = maybe((FnArity *)0, (Value *)0, x_0);
 return(maybeFailure);
 "))
 
