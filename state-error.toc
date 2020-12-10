@@ -44,10 +44,10 @@ return(maybeFailure);
 
 (def maybe-failure (init Failure))
 
-(deftype Error [msg state]
+(deftype Error [val state]
   Stringable
   (string-list [_] 
-    (list "<Error " (str msg) ">"))
+    (list "(Error " (str val) ")"))
 
   StateError
   (chain [e _]
