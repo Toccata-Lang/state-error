@@ -163,6 +163,20 @@ return(maybeFailure);
     Composition
     (zero [_] zero-se)))
 
+(defn throw [error-value]
+  (new-se (partial Error error-value)))
+
+(defn try [f catcher]
+  (new-se (fn [s]
+            (let [x (f s)]
+              (either (map (instance? Error x)
+                           (fn [err]
+                             ((catcher err) s)))
+                      x)))))
+
+(defn traverse [coll f]
+  (map coll f state-error))
+
 (defn lift [f]
   (fn [& args]
     (new-se (fn [s]
@@ -178,7 +192,7 @@ return(maybeFailure);
                (either (map (get s k)
                             (fn [v]
                               [v s]))
-                       zero-se))))
+                       Failure))))
   ([k nf]
      (new-se (fn [s]
                (either (map (get s k)
@@ -196,7 +210,7 @@ return(maybeFailure);
                (either (map (get-in s path)
                             (fn [v]
                               [v s]))
-                       zero-se))))
+                       Failure))))
   ([path nf]
      (new-se (fn [s]
                (either (map (get-in s path)
@@ -213,14 +227,14 @@ return(maybeFailure);
             (either (for [v (get s key)
                           new-s (update-in s [key] f)]
                       [v new-s])
-                    zero-se))))
+                    Failure))))
 
 (defn update-in-val [path f]
   (new-se (fn [s]
             (either (for [v (get-in s path)
                           new-s (update-in s path f)]
                       [v new-s])
-                    zero-se))))
+                    Failure))))
 
 (deftype Stupid [values])
 
@@ -247,7 +261,7 @@ return(maybeFailure);
 
   (new-se (fn [s]
             (either (map val (fn [v] [v s]))
-                    zero-se))))
+                    Failure))))
 
 (defn when-not [val]
   (assert (instance? Maybe val))
@@ -256,4 +270,4 @@ return(maybeFailure);
             (cond (= nothing val)
                   [nothing s]
 
-                  zero-se))))
+                  Failure))))
